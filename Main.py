@@ -4,12 +4,17 @@ import math
 
 # initialize pygame
 pygame.init()
+from pygame import mixer
 
 # create screen
 screen = pygame.display.set_mode((800, 600))
 
 #game background
 background = pygame.image.load('game background 2.jpg')
+
+# game music
+mixer.music.load('background.wav')
+mixer.music.play(-1)
 
 # title and icon
 pygame.display.set_caption("Manta ghost killer!")
@@ -40,14 +45,30 @@ for i in range (number_Of_Ghosts):
 
 #bullet
 #ready means you can't see it on the screen, fire means you can
-bulletImg = pygame.image.load('bullet.png')
+bulletImg = pygame.image.load('bullet1.png')
 bulletX = 0
 bulletY = 480
 bulletX_change = 0
 bulletY_change = .5
 bullet_State = "ready"
 
-score = 0
+#score
+score_value = 0
+font = pygame.font.Font('freesansbold.ttf',32)
+
+textX =10
+textY=10
+
+#game over text
+over_font = pygame.font.Font('freesansbold.ttf', 64)
+
+def show_score(x,y):
+    score = font.render("Score: " + str(score_value), True,(255,255,255))
+    screen.blit(score, (x, y))
+
+def game_over_text():
+    over_text = over_font.render("GAME OVER ", True,(255,255,255))
+    screen.blit(over_text, (200, 250))
 
 def player(x, y):
     screen.blit(playerImg, (x, y))
@@ -92,6 +113,8 @@ while running:
                 playerY_change = 0.3
             if event.key == pygame.K_SPACE:
                 if bullet_State is "ready":
+                    bullet_Sound = mixer.Sound('laser.wav')
+                    bullet_Sound.play()
                     bulletX = playerX
                     bulletY = playerY
                     fire_bullet(playerX,playerY)
@@ -120,6 +143,14 @@ while running:
 
     #ghost movement boundaries
     for i in range (number_Of_Ghosts):
+
+        # game over
+        if ghostY[i] > 440:
+            for j in range(number_Of_Ghosts):
+                ghostY[j] = 2000
+            game_over_text()
+            break
+
         ghostX[i] += ghostX_change[i]
 
         if ghostX[i] <= 0:
@@ -131,10 +162,12 @@ while running:
         # collision
         collision = isCollision(ghostX[i], ghostY[i], bulletX, bulletY)
         if collision:
+            explosion_Sound = mixer.Sound('explosion.wav')
+            explosion_Sound.play()
             bulletY = 480
             bullet_State = "ready"
-            score += 1
-            print(score)
+            score_value += 1
+            print(score_value)
             ghostX[i] = random.randint(0, 735)
             ghostY[i] = random.randint(50, 150)
 
@@ -152,6 +185,7 @@ while running:
 
 
     player(playerX, playerY)
+    show_score(textX,textY)
 
 
     pygame.display.update()
